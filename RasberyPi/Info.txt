@@ -1,0 +1,14 @@
+http://wiringpi.com/examples/blink/ -sterowanie GPIO
+
+Sterowanie ledami z konsoli
+gpio -g write 17 1
+gpio -g write 17 0
+
+http://www.airspayce.com/mikem/bcm2835/ - alternatywna bibliotek do sterowania GPIO
+
+https://learn.adafruit.com/adafruits-raspberry-pi-lesson-8-using-a-servo-motor/software - sterowanie servem z konsoli
+gpio -g mode 18 pwm
+gpio pwm-ms
+gpio pwmc 192
+gpio pwmr 2000
+gpio -g pwm 18 100
