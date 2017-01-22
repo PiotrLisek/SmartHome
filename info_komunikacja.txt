@@ -1,2 +1,0 @@
-Na chwilê obecn¹ Raspberry i Arduino komunikuj¹ siê przez usb (serial port).
-Póki co komunikacja jest jednostronna Arduino -> Raspberry. 

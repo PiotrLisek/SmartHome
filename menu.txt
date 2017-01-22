@@ -1,0 +1,11 @@
+Stany wyœwietlacza.
+
+       - wygaszony
+	
+       - w³¹czony 
+	|-Pokazuje dzieñ, miesi¹c, rok, temperatura informacja o
+	| zabezpieczeniu
+       -Menu (przewijane góra/dó³)
+	|-otwieranie servem po potwierdzeniu pinu
+	|-ustawianie pinu
+	|-w³¹czenie dŸwiêku klawiatury

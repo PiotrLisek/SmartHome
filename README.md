@@ -1,8 +1,7 @@
-# SmartHome
+﻿# SmartHome
 
-Biblioteka C dla raspberry Pi - WiringPI
+https://circuits.io/circuits/3666633-the-unnamed-circuit
 
-ZADANIA
 
 Odczyt stanu oświetlenia, włączanie, wyłączanie świateł - Piotrek
 
