@@ -1,7 +1,9 @@
 ﻿# SmartHome
+Schemat podłączania modułu klawiatury
+https://circuits.io/circuits/3666633-keyboard_arduino
 
-https://circuits.io/circuits/3666633-the-unnamed-circuit
-
+Schemat podłączania LCD
+https://circuits.io/circuits/3761095-lcd_arduino
 
 Odczyt stanu oświetlenia, włączanie, wyłączanie świateł - Piotrek
 
