@@ -1,19 +1,19 @@
 
 //===========================================LCD=========================================================
-#include <LiquidCrystal.h> //Dołączenie bilbioteki
-LiquidCrystal lcd(2, 3, 4, 5, 6, 7); //Informacja o podłączeniu nowego wyświetlacza
+#include <LiquidCrystal.h> 
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
 //======================================================SETUP============================================
 void setup() 
 {
   Serial.begin(9600);
-  pinMode(8, OUTPUT); //ustawienie pinu 8 jako output
-  lcd.begin(16, 2); //Deklaracja typu
-  lcd.setCursor(0, 0); //Ustawienie kursora
+  pinMode(8, OUTPUT);
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 0); 
   lcd.print("TEMP 21,7");
   lcd.print((char)223);
-  lcd.print(" 21:25"); //Wyświetlenie tekstu
-  lcd.setCursor(0, 1); //Ustawienie kursora
-  lcd.print("sob 21 STY 2016"); //Wyświetlenie tekstu
+  lcd.print(" 21:25"); 
+  lcd.setCursor(0, 1);
+  lcd.print("sob 21 STY 2016");
   digitalWrite(8, HIGH);
 }
 //==========================================Zmienne Globalne=============================================
@@ -23,9 +23,9 @@ const char* menuItems[]=
   "Otwarcie szafki", 
   "Zmiana pinu", 
   "Buzzer on/off",
-  "----------------",
+  "Ust daty/godziny",
 };
-char incomingByte = 0; 
+char incomingByte = '~'; 
 bool czyOn = true;
 double ileRazy = 0;
 //==========================================czytanie portu szeregowego===================================
@@ -38,41 +38,120 @@ char czytaj()
     return incomingByte;
   }
 }
-//=====================================================Wyświetlanie_menu=================================
-void lcd_menu(int x)
+//=====================================================Otwieranie szafki=================================
+void szafka()
 {
+  incomingByte = '~';
+  Serial.println('s');
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print(menuItems[0]);
+  lcd.print("Otwarcie szafki");
   lcd.setCursor(0, 1);
-  lcd.print(menuItems[x]);  
+  lcd.print("Podaj Pin: ");
+  while(1)
+  {
+    czytaj();
+    if(incomingByte == 'B')
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Anulowano");
+      delay(1000);
+      return;
+    }
+    else if(incomingByte == 'o')
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Otworzono");
+      delay(1000);
+      return;
+    }
+    else if(incomingByte != '~')
+    {
+      lcd.print("*");
+      incomingByte = '~';
+    }
+  }
 }
-//======================================================MENU=============================================
-void menu()
+//=====================================================Zmiana Pinu=======================================
+void zmPin()
 {
-  lcd_menu(1);
+  incomingByte = '~';
+  ileRazy = 0;
+  Serial.println('z');
+  lcd.clear();
+  lcd.setCursor(0, 0); 
+  lcd.print("Zmiana Pinu");
+  lcd.setCursor(0, 1);
+  lcd.print("Stary Pin: ");
+  while(1)
+  {
+    czytaj();
+    if(incomingByte == 'B')
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Anulowano");
+      delay(1000);
+      return;
+    }
+    else if(incomingByte == 'z')
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Bledny Pin");
+      delay(1000);
+      return;      
+    }
+    else if(incomingByte == 'o' && ileRazy == 0)
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Stary Pin OK!");
+      lcd.setCursor(0, 1);
+      lcd.print("Nowy Pin: ");
+      ileRazy++;
+    }
+    else if(incomingByte == 'o' && ileRazy == 1)
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Powtorz Pin");
+      lcd.setCursor(0, 1);
+      lcd.print("Nowy Pin: ");
+      ileRazy++;
+    }
+    else if(incomingByte == 'o' && ileRazy == 2)
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Zmieniono Pin");
+      delay(1000);
+      ileRazy = 0;
+      return;      
+    }
+    else if(incomingByte != '~')
+    {
+      lcd.print("*");
+    }
+    incomingByte = '~'; 
+  }
+}
+//=====================================================Buzzer on/off=====================================
+/*void buzzer()
+{
+  int i = 1;
+  Serial.println('b');
   while(1)
   {
     czytaj();
     switch(incomingByte)
     {
-      case 'p':
-      {
-        Serial.println(incomingByte);
-        Serial.println(ileRazy);
-        Serial.println(czyOn);
-        incomingByte = '~';
-      }
-      break;
       case 'A':
       {
-        if(czyOn == false)
-        {
-          digitalWrite(8, HIGH);
-          czyOn = true;
-          ileRazy = 0;
-        }
-        // menu();
+        Serial.println(i);
+        ileRazy = 0;
         incomingByte = '~';
       }
       break;
@@ -89,16 +168,19 @@ void menu()
       case '*':
       case '#':
       case 'B':
+      {
+        ileRazy = 500000;
+        incomingByte = '~';
+      }
+      break;
       case 'C':
+      {
+        i=1;
+      }
+      break;
       case 'D':
       {
-        if(czyOn == false)
-        {
-          digitalWrite(8, HIGH);
-          czyOn = true;
-          ileRazy = 0;
-        }
-        incomingByte = '~';
+        i=0;
       }
       break;
       default:
@@ -108,6 +190,138 @@ void menu()
           ileRazy ++;
         }
       }
+      break;
+    }
+    if(ileRazy==500000&& czyOn == true)
+    {
+      ileRazy = 0;
+   //   lcd_print(0);
+      break;
+    }
+  }
+}*/
+
+//=====================================================Wybór funkcji=====================================
+void wybor(int x)
+{
+  switch(x)
+  {
+    case 1:
+      szafka();
+    break;
+    case 2:
+      zmPin();
+    break;
+    case 3:
+   //   buzzer();
+    break;
+    case 4:
+   //   setTime();
+    break;      
+    
+  }
+}
+//=====================================================Wyświetlanie_menu=================================
+void lcd_print(int x)
+{
+  ileRazy = 0;
+  switch(x)
+  {
+    case 0:
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("TEMP 21,7");
+      lcd.print((char)223); 
+      lcd.print(" 21:25");
+      lcd.setCursor(0, 1);
+      lcd.print("sob 21 STY 2016");
+      incomingByte = '~';
+    }
+    break;
+    default:
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print(menuItems[0]);
+      lcd.setCursor(0, 1);
+      lcd.print(menuItems[x]);  
+      incomingByte = '~';
+    }
+    break;
+  }
+}
+//======================================================MENU=============================================
+void menu()
+{
+  int i = 1;
+  lcd_print(i);
+  while(1)
+  {
+    czytaj();
+    switch(incomingByte)
+    {
+      case 'A':
+      {
+        if(czyOn == false)
+        {
+          digitalWrite(8, HIGH);
+          czyOn = true;
+          ileRazy = 0;
+        }
+        wybor(i);
+        incomingByte = '~';
+      }
+      break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+      case '0':
+      case '*':
+      case '#':
+      case 'B':
+      {
+        ileRazy = 500000;
+        incomingByte = '~';
+      }
+      break;
+      case 'C':
+      {
+        if(i>1)
+        {
+          i--;
+        }
+        lcd_print(i);
+      }
+      break;
+      case 'D':
+      {
+         if(i<((sizeof menuItems/sizeof *menuItems)-1))
+        {
+          i++;
+        }
+        lcd_print(i);
+      }
+      break;
+      default:
+      {
+        if(ileRazy<=500000 && czyOn == true)
+        {
+          ileRazy ++;
+        }
+      }
+      break;
+    }
+    if(ileRazy==500000&& czyOn == true)
+    {
+      ileRazy = 0;
+      lcd_print(0);
       break;
     }
   }
@@ -123,17 +337,16 @@ void loop()
   delay(1000);
   */
   czytaj();
-  switch(incomingByte)
+  while(incomingByte!='~')
   {
-    case 'p':
+    if(incomingByte == 'p')
     {
-      Serial.println(incomingByte);
+      Serial.println(sizeof menuItems/sizeof *menuItems);
       Serial.println(ileRazy);
       Serial.println(czyOn);
       incomingByte = '~';
     }
-    break;
-    case 'A':
+    else if(incomingByte == 'A')
     {
       if(czyOn == false)
       {
@@ -142,24 +355,8 @@ void loop()
         ileRazy = 0;
       }
       menu();
-      incomingByte = '~';
     }
-    break;
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-    case '0':
-    case '*':
-    case '#':
-    case 'B':
-    case 'C':
-    case 'D':
+    else
     {
       if(czyOn == false)
       {
@@ -169,18 +366,12 @@ void loop()
       }
       incomingByte = '~';
     }
-    break;
-    default:
-    {
-      if(ileRazy<=500000 && czyOn == true)
-      {
-        ileRazy ++;
-      }
-    }
-    break;
-    
   }
-  if(ileRazy==500000&& czyOn == true)
+  if(ileRazy<=500000 && czyOn == true)
+  {
+    ileRazy ++;
+  }
+  else if(ileRazy>=500000&& czyOn == true)
     {
       ileRazy = 0;
       czyOn = false;
