@@ -59,6 +59,14 @@ void szafka()
       delay(1000);
       return;
     }
+    else if(incomingByte == 'z')
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Bledny Pin");
+      delay(1000);
+      return;      
+    }
     else if(incomingByte == 'o')
     {
       lcd.clear();
@@ -362,8 +370,9 @@ void loop()
       {
         digitalWrite(8, HIGH);
         czyOn = true;
-        ileRazy = 0;
+        
       }
+      ileRazy = 0;
       incomingByte = '~';
     }
   }

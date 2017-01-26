@@ -3,8 +3,7 @@ Stany wyœwietlacza.
        - wygaszony
 	
        - w³¹czony 
-	|-Pokazuje dzieñ, miesi¹c, rok, temperatura informacja o
-	| zabezpieczeniu
+	|-Pokazuje dzieñ, miesi¹c, rok, temperatura
        -Menu (przewijane góra/dó³)
 	|-otwieranie servem po potwierdzeniu pinu
 	|-ustawianie pinu
