@@ -1,11 +1,17 @@
-
 //===========================================LCD=========================================================
 #include <LiquidCrystal.h> 
 LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
+//======================================================RFID============================================
+#include <SoftwareSerial.h>
+SoftwareSerial RFID = SoftwareSerial(9,10);
+
 //======================================================SETUP============================================
 void setup() 
 {
   Serial.begin(9600);
+  RFID.begin(9600);
+  Serial.println("RFID Ready");
+  pinMode(13, OUTPUT);
   pinMode(8, OUTPUT);
   lcd.begin(16, 2);
   lcd.setCursor(0, 0); 
@@ -334,6 +340,49 @@ void menu()
     }
   }
 }
+
+//===========================================================Czujnik gazu========================================
+void gaz() {
+  const int gasPin = A0;
+  if(analogRead(gasPin) > 200) {
+    digitalWrite(13, HIGH);
+    //Serial.println("Wysokie stezenie gazu");
+    //delay(1000);
+  }
+  else{
+    digitalWrite(13, LOW);
+  }
+}
+
+//===========================================================RFID==================================================
+void rfid(){
+  char readString;
+  int lock=1;
+  char c;
+  String msg;
+  
+  while(RFID.available()>0){
+    c=RFID.read(); 
+    msg += c;
+  }
+ 
+  if (msg.length() > 10) {
+    msg = msg.substring(1,13);
+    Serial.println(msg);
+
+
+  if (msg == "01063B3AAAAC") {
+      if(lock == 0) {
+        lock = 1;
+      } else if(lock == 1) {   
+        lock = 0;
+      }
+    }
+    
+    msg = "";
+  }
+  delay(100);
+}
 //===========================================================LOOP========================================
 void loop() 
 {
@@ -344,9 +393,12 @@ void loop()
   digitalWrite(8, HIGH);
   delay(1000);
   */
+  gaz();
+  rfid();
   czytaj();
   while(incomingByte!='~')
   {
+    gaz();
     if(incomingByte == 'p')
     {
       Serial.println(sizeof menuItems/sizeof *menuItems);
