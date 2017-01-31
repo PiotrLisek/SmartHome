@@ -22,6 +22,7 @@ Keypad klawiatura = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS ); //
 char pin[4] = {'5', '4', '3', '2'};
 char incomingByte = 0;
 char klawisz;
+bool buzz_on_off = true;
 
 //================================================czytanie portu szeregowego========================================
 char czytaj()
@@ -38,6 +39,10 @@ char czytaj()
 void buzzerSound(int x)
 {
   int i;
+  if(!buzz_on_off)
+  {
+    return;
+  }
   switch(x)
   {
     case 0:  //dzwiek wczytania klawisza
@@ -73,7 +78,7 @@ void buzzerSound(int x)
 }
 
 //==============================================wczytywanie pinu=====================================================
-void getPin()
+int getPin()
 {
   //Serial.println("podaj pin");
   char pinto[4];
@@ -104,15 +109,87 @@ void getPin()
   {
     Serial.print('o');
     buzzerSound(1);
+    return 1;
   }
   else
   {
     delay(100);
     Serial.print('z');
     buzzerSound(2);
+    return 0;
   }
 }
-
+//==============================================zmiana pinu=========================
+void changePin()
+{
+  char pinto[4];
+  int i;
+  char pintocheck[4];
+  if(getPin())
+  {
+    for(i=0 ; i<4 ; i++)
+    {
+      while(1)
+      {
+        klawisz = klawiatura.getKey();
+        if (klawisz)
+        {
+          buzzerSound(0);
+          if (klawisz >= '0' && klawisz <= '9')
+          {
+            Serial.print(klawisz);
+            break;
+          }
+          else if(klawisz == 'B')
+          {
+            Serial.print(klawisz);
+            return;
+          }
+        }
+      }
+      pinto[i] = klawisz;
+    }
+    Serial.print('o');
+    buzzerSound(1);
+    for(i=0 ; i<4 ; i++)
+    {
+      while(1)
+      {
+        klawisz = klawiatura.getKey();
+        if (klawisz)
+        {
+          buzzerSound(0);
+          if (klawisz >= '0' && klawisz <= '9')
+          {
+            Serial.print(klawisz);
+            break;
+          }
+          else if(klawisz == 'B')
+          {
+            Serial.print(klawisz);
+            return;
+          }
+        }
+      }
+      pintocheck[i] = klawisz;
+    }
+    if(pinto[0]==pintocheck[0] && pinto[1]==pintocheck[1] && pinto[2]==pintocheck[2] && pinto[3]==pintocheck[3])
+    {
+       for(i=0 ; i<4 ; i++)
+       {
+         pin[i]=pinto[i];        
+       }
+       buzzerSound(1);
+       Serial.print('o');
+    }
+    else
+    {
+       buzzerSound(2);
+       Serial.print('z');      
+    }
+  }
+}
+//==============================================setup=============================
 void setup() 
 {
   Serial.begin(9600);
@@ -130,13 +207,19 @@ void loop()
       case 't':
       {
         Serial.println("test ok");
-        incomingByte = 0;
+        incomingByte = '~';
       }
       break;
       case 's':
       {
         getPin();
-        incomingByte = 0;
+        incomingByte = '~';
+      }
+      break;
+      case 'z':
+      {
+        changePin();
+        incomingByte = '~';
       }
       break;
     }

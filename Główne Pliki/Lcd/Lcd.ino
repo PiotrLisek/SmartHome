@@ -1,4 +1,4 @@
-//===========================================LCD=========================================================
+ //===========================================LCD=========================================================
 #include <LiquidCrystal.h> 
 LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
 //======================================================RFID============================================
@@ -10,7 +10,6 @@ void setup()
 {
   Serial.begin(9600);
   RFID.begin(9600);
-  Serial.println("RFID Ready");
   pinMode(13, OUTPUT);
   pinMode(8, OUTPUT);
   lcd.begin(16, 2);
@@ -23,12 +22,12 @@ void setup()
   digitalWrite(8, HIGH);
 }
 //==========================================Zmienne Globalne=============================================
-const char* menuItems[]=
+const char* menuItems[]= 
 {
-  "      MENU",
+  "      MENU",     
   "Otwarcie szafki", 
   "Zmiana pinu", 
-  "Buzzer on/off",
+ // "Buzzer on/off",
   "Ust daty/godziny",
 };
 char incomingByte = '~'; 
