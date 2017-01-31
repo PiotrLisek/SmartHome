@@ -8,7 +8,6 @@ const char* menuItems[]=
   "      MENU",
   "Otwarcie szafki", 
   "Zmiana pinu", 
-  "Buzzer on/off",
   "Ust daty/godziny",
 };
 char incomingByte = '~'; 
@@ -132,68 +131,6 @@ void zmPin()
     incomingByte = '~'; 
   }
 }
-//=====================================================Buzzer on/off=====================================
-/*void buzzer()
-{
-  int i = 1;
-  Serial.println('b');
-  while(1)
-  {
-    czytaj();
-    switch(incomingByte)
-    {
-      case 'A':
-      {
-        Serial.println(i);
-        ileRazy = 0;
-        incomingByte = '~';
-      }
-      break;
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-      case '8':
-      case '9':
-      case '0':
-      case '*':
-      case '#':
-      case 'B':
-      {
-        ileRazy = 500000;
-        incomingByte = '~';
-      }
-      break;
-      case 'C':
-      {
-        i=1;
-      }
-      break;
-      case 'D':
-      {
-        i=0;
-      }
-      break;
-      default:
-      {
-        if(ileRazy<=500000 && czyOn == true)
-        {
-          ileRazy ++;
-        }
-      }
-      break;
-    }
-    if(ileRazy==500000&& czyOn == true)
-    {
-      ileRazy = 0;
-   //   lcd_print(0);
-      break;
-    }
-  }
-}*/
 
 //=====================================================Wybór funkcji=====================================
 void wybor(int x)
@@ -225,9 +162,10 @@ void lcd_print(int x)
     {
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("TEMP 21,7");
+      lcd.print("TEMP: ");
+      lcd.print(temperatura());
       lcd.print((char)223); 
-      lcd.print(" 21:25");
+      lcd.print(" 21:00");
       lcd.setCursor(0, 1);
       lcd.print("sob 21 STY 2016");
       incomingByte = '~';
@@ -321,113 +259,45 @@ void menu()
   }
 }
 
-//===========================================================Czujnik gazu========================================
-void gaz() {
-  int gasPin = A0;
-  if(analogRead(gasPin) > 200) {
-    digitalWrite(13, HIGH);
-    Serial.println(analogRead(gasPin));
-    //delay(1000);
-  }
-  else{
-    //digitalWrite(13, LOW);
-  }
-}
 
-//===========================================================Servo================================================
-#include <Servo.h>
-Servo servo1; 
-void servo_move(int angle) {
-  
-  servo1.attach(10); //servo PIN3
-  servo1.write(angle); 
-  delay(500);
-  servo1.detach();
-  Serial.println(angle);
-}
+//===========================================================Czujnik temperatury==================================
+#include <dht.h>
+dht DHT;
+#define DHT11_PIN 11
+int temperatura(){
+  DHT.read11(DHT11_PIN);
+  int temp = DHT.temperature;
+//  Serial.print(DHT.humidity,0);
+//  Serial.print(", ");
+  //Serial.println(DHT.temperature,0);
 
-//===========================================================RFID================================================
-#include <SoftwareSerial.h>
-SoftwareSerial RFID = SoftwareSerial(9,10);
-
-void rfid(){
-  char readString;
-  int lock=1;
-  char c;
-  String msg;
-  
-  while(RFID.available()>0){
-    c=RFID.read(); 
-    msg += c;
-  }
- 
-  if (msg.length() > 10) {
-    msg = msg.substring(1,13);
-    Serial.println(msg);
-
-
-  if (msg == "01063B3AAAAC") {
-      if(lock == 0) {
-        lock = 1;
-        servo_move(20);
-      } else if(lock == 1) {   
-        lock = 0;
-        servo_move(120);
-      }
-    }
-    
-    msg = "";
-  }
-  delay(100);
-}
-
-//===========================================================Kontaktron===================================
-void kontaktron(){
-  if (digitalRead(12) == 1) {
-    digitalWrite(13, HIGH);
-    //Serial.println("Kontaktron otwarty");
-  } else {
-    digitalWrite(13, LOW);
-  }
+  //delay(1000); 
+  return(DHT.temperature); 
 }
 
 //======================================================SETUP============================================
 void setup() 
 {
   Serial.begin(9600);
-  RFID.begin(9600);
-  Serial.println("RFID Ready");
-  pinMode(13, OUTPUT);
   pinMode(8, OUTPUT);
   lcd.begin(16, 2);
   lcd.setCursor(0, 0); 
-  lcd.print("TEMP 21,7");
+  lcd.print("TEMP: ");
+  lcd.print(temperatura());
   lcd.print((char)223);
   lcd.print(" 21:25"); 
   lcd.setCursor(0, 1);
   lcd.print("sob 21 STY 2016");
   digitalWrite(8, HIGH);
-  pinMode(12, INPUT_PULLUP);
   
 }
 
 //===========================================================LOOP========================================
 void loop() 
 {
-  /*
-  //Włączanie i wyłączanie podświetlenia lcd
-  digitalWrite(8, LOW);
-  delay(1000);
-  digitalWrite(8, HIGH);
-  delay(1000);
-  */
-  gaz();
-  rfid();
-  kontaktron();
   czytaj();
   while(incomingByte!='~')
   {
-    gaz();
     if(incomingByte == 'p')
     {
       Serial.println(sizeof menuItems/sizeof *menuItems);
@@ -447,6 +317,7 @@ void loop()
     }
     else
     {
+      lcd_print(0);
       if(czyOn == false)
       {
         digitalWrite(8, HIGH);

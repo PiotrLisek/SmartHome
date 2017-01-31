@@ -1,6 +1,7 @@
 //czytanie z klawiatury
 #include <Keypad.h> //biblioteka od klawiatury
-
+#include <Servo.h>
+#include <SoftwareSerial.h>
 //===================================================klawiatura=====================================================
 const byte ROWS = 4; // ile wierszy
 const byte COLS = 4; //ile kolumn
@@ -23,6 +24,7 @@ char pin[4] = {'5', '4', '3', '2'};
 char incomingByte = 0;
 char klawisz;
 bool buzz_on_off = true;
+int lock = 1;
 
 //================================================czytanie portu szeregowego========================================
 char czytaj()
@@ -189,16 +191,88 @@ void changePin()
     }
   }
 }
+//===========================================================Czujnik gazu========================================
+void gaz() {
+  int gasPin = A0;
+  if (analogRead(gasPin) > 200) {
+    digitalWrite(13, HIGH);
+    Serial.println(analogRead(gasPin));
+    //delay(1000);
+  }
+  else {
+    //digitalWrite(13, LOW);
+  }
+}
+
+//===========================================================Kontaktron===================================
+void kontaktron() {
+  if (digitalRead(12) == HIGH) {
+    digitalWrite(13, HIGH);
+    //   Serial.println("Kontaktron otwarty");
+  } else {
+    digitalWrite(13, LOW);
+    //    Serial.println("Kontaktron zamkn");
+  }
+}
+
+//===========================================================Servo================================================
+Servo servo1;
+void servo_move(int angle) {
+
+  servo1.attach(10); //servo PIN3
+  servo1.write(angle);
+  delay(500);
+  servo1.detach();
+  Serial.println(angle);
+}
+//===========================================================RFID================================================
+SoftwareSerial RFID = SoftwareSerial(11, 12);
+
+void rfid() {
+  char readString;
+
+  char c;
+  String msg;
+
+  while (RFID.available() > 0) {
+    c = RFID.read();
+    msg += c;
+  }
+
+  if (msg.length() > 10) {
+    msg = msg.substring(1, 13);
+    Serial.println(msg);
+
+
+    if (msg == "01063B3AAAAC") {
+      if (lock == 0) {
+        lock = 1;
+        servo_move(20);
+      } else if (lock == 1) {
+        lock = 0;
+        servo_move(120);
+      }
+    }
+
+    msg = "";
+  }
+  delay(500);
+}
 //==============================================setup=============================
 void setup() 
 {
   Serial.begin(9600);
-  pinMode(13, INPUT_PULLUP);
+  pinMode(12, INPUT_PULLUP);
+  pinMode(13, OUTPUT);
   pinMode(A5, OUTPUT);
+  RFID.begin(9600);
 }
   
 void loop() 
 {
+  rfid();
+  kontaktron();
+  gaz();
   czytaj();
   if(incomingByte!='~')
   {
@@ -229,15 +303,5 @@ void loop()
   {
     buzzerSound(0);
     Serial.print(klawisz);
-  }
-  if (digitalRead(13) == LOW)                          
-  {
-    getPin();
-        /*Serial.println("on");          // send the data
-        while(digitalRead(13) != HIGH)
-        {
-          delay(50);
-        }
-        Serial.println("off");*/
-  }  
+  } 
 }
