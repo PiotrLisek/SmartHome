@@ -1,33 +1,14 @@
- //===========================================LCD=========================================================
+//===========================================LCD=========================================================
 #include <LiquidCrystal.h> 
 LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
-//======================================================RFID============================================
-#include <SoftwareSerial.h>
-SoftwareSerial RFID = SoftwareSerial(9,10);
 
-//======================================================SETUP============================================
-void setup() 
-{
-  Serial.begin(9600);
-  RFID.begin(9600);
-  pinMode(13, OUTPUT);
-  pinMode(8, OUTPUT);
-  lcd.begin(16, 2);
-  lcd.setCursor(0, 0); 
-  lcd.print("TEMP 21,7");
-  lcd.print((char)223);
-  lcd.print(" 21:25"); 
-  lcd.setCursor(0, 1);
-  lcd.print("sob 21 STY 2016");
-  digitalWrite(8, HIGH);
-}
 //==========================================Zmienne Globalne=============================================
-const char* menuItems[]= 
+const char* menuItems[]=
 {
-  "      MENU",     
+  "      MENU",
   "Otwarcie szafki", 
   "Zmiana pinu", 
- // "Buzzer on/off",
+  "Buzzer on/off",
   "Ust daty/godziny",
 };
 char incomingByte = '~'; 
@@ -342,18 +323,33 @@ void menu()
 
 //===========================================================Czujnik gazu========================================
 void gaz() {
-  const int gasPin = A0;
+  int gasPin = A0;
   if(analogRead(gasPin) > 200) {
     digitalWrite(13, HIGH);
-    //Serial.println("Wysokie stezenie gazu");
+    Serial.println(analogRead(gasPin));
     //delay(1000);
   }
   else{
-    digitalWrite(13, LOW);
+    //digitalWrite(13, LOW);
   }
 }
 
-//===========================================================RFID==================================================
+//===========================================================Servo================================================
+#include <Servo.h>
+Servo servo1; 
+void servo_move(int angle) {
+  
+  servo1.attach(10); //servo PIN3
+  servo1.write(angle); 
+  delay(500);
+  servo1.detach();
+  Serial.println(angle);
+}
+
+//===========================================================RFID================================================
+#include <SoftwareSerial.h>
+SoftwareSerial RFID = SoftwareSerial(9,10);
+
 void rfid(){
   char readString;
   int lock=1;
@@ -373,8 +369,10 @@ void rfid(){
   if (msg == "01063B3AAAAC") {
       if(lock == 0) {
         lock = 1;
+        servo_move(20);
       } else if(lock == 1) {   
         lock = 0;
+        servo_move(120);
       }
     }
     
@@ -382,6 +380,37 @@ void rfid(){
   }
   delay(100);
 }
+
+//===========================================================Kontaktron===================================
+void kontaktron(){
+  if (digitalRead(12) == 1) {
+    digitalWrite(13, HIGH);
+    //Serial.println("Kontaktron otwarty");
+  } else {
+    digitalWrite(13, LOW);
+  }
+}
+
+//======================================================SETUP============================================
+void setup() 
+{
+  Serial.begin(9600);
+  RFID.begin(9600);
+  Serial.println("RFID Ready");
+  pinMode(13, OUTPUT);
+  pinMode(8, OUTPUT);
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 0); 
+  lcd.print("TEMP 21,7");
+  lcd.print((char)223);
+  lcd.print(" 21:25"); 
+  lcd.setCursor(0, 1);
+  lcd.print("sob 21 STY 2016");
+  digitalWrite(8, HIGH);
+  pinMode(12, INPUT_PULLUP);
+  
+}
+
 //===========================================================LOOP========================================
 void loop() 
 {
@@ -394,6 +423,7 @@ void loop()
   */
   gaz();
   rfid();
+  kontaktron();
   czytaj();
   while(incomingByte!='~')
   {
