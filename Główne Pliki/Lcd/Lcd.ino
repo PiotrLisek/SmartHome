@@ -165,9 +165,12 @@ void lcd_print(int x)
       lcd.print("TEMP: ");
       lcd.print(temperatura());
       lcd.print((char)223); 
-      lcd.print(" 21:00");
+      lcd.print("C");
+      lcd.print(" 11:30");
       lcd.setCursor(0, 1);
-      lcd.print("sob 21 STY 2016");
+      lcd.print("WILG: ");
+      lcd.print(wilgotnosc());
+      lcd.print("%");
       incomingByte = '~';
     }
     break;
@@ -283,19 +286,21 @@ void menu()
 }
 
 
-//===========================================================Czujnik temperatury==================================
+
+//===============================================Czujnik temperatury==================================
 #include <dht.h>
 dht DHT;
 #define DHT11_PIN 11
 int temperatura(){
   DHT.read11(DHT11_PIN);
   int temp = DHT.temperature;
-//  Serial.print(DHT.humidity,0);
-//  Serial.print(", ");
-  //Serial.println(DHT.temperature,0);
+  return(temp); 
+}
 
-  //delay(1000); 
-  return(DHT.temperature); 
+//===============================================Czujnik wilgotnosci==================================
+int wilgotnosc(){
+  int wilg = DHT.humidity;
+  return(wilg); 
 }
 
 //======================================================SETUP============================================
@@ -304,13 +309,16 @@ void setup()
   Serial.begin(9600);
   pinMode(8, OUTPUT);
   lcd.begin(16, 2);
-  lcd.setCursor(0, 0); 
+  lcd.setCursor(0, 0);
   lcd.print("TEMP: ");
   lcd.print(temperatura());
-  lcd.print((char)223);
-  lcd.print(" 21:25"); 
+  lcd.print((char)223); 
+  lcd.print("C");
+  lcd.print(" 11:30");
   lcd.setCursor(0, 1);
-  lcd.print("sob 21 STY 2016");
+  lcd.print("WILG: ");
+  lcd.print(wilgotnosc());
+  lcd.print("%");
   digitalWrite(8, HIGH);
   
 }
