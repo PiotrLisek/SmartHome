@@ -254,13 +254,13 @@ void rfid()
   if (msg.length() > 10) 
   {
     msg = msg.substring(1, 13);
-    Serial.println(msg);
     if (msg == "01063B3AAAAC") 
     {
       if (lock == 1) 
       {
         lock = 0;
         servo_move(120);
+         buzzerSound(3);
       }
     }
     msg = "";
