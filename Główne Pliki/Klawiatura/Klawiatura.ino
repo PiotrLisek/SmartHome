@@ -23,7 +23,7 @@ Keypad klawiatura = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS ); //
 char pin[4] = {'5', '4', '3', '2'};
 char incomingByte = 0;
 char klawisz;
-bool buzz_on_off = true;
+int ile = 0;
 int lock = 1;
 
 //================================================czytanie portu szeregowego========================================
@@ -41,10 +41,6 @@ char czytaj()
 void buzzerSound(int x)
 {
   int i;
-  if(!buzz_on_off)
-  {
-    return;
-  }
   switch(x)
   {
     case 0:  //dzwiek wczytania klawisza
@@ -76,6 +72,17 @@ void buzzerSound(int x)
         }
         break;
     }
+    case 3:   // drzwi otwarte
+    {
+        for(i=0 ; i<500 ; i++)
+        {
+          digitalWrite(A5,HIGH);
+          delay(5);
+          digitalWrite(A5,LOW);
+          delay(5);
+        }
+        break;
+    }
   }
 }
 
@@ -101,7 +108,7 @@ int getPin()
         else if(klawisz == 'B')
         {
           Serial.print(klawisz);
-          return;
+          return 0;
         }
       }
     }
@@ -192,28 +199,20 @@ void changePin()
   }
 }
 //===========================================================Czujnik gazu========================================
-void gaz() {
+int gaz() 
+{
   int gasPin = A0;
-  if (analogRead(gasPin) > 200) {
-    digitalWrite(13, HIGH);
-    Serial.println(analogRead(gasPin));
-    //delay(1000);
+  if (analogRead(gasPin) > 600) 
+  {
+    ile++;
   }
-  else {
-    //digitalWrite(13, LOW);
+  else 
+  {
+    ile = 0;  
   }
+  return (ile>10000) ? 1 : 0;
 }
 
-//===========================================================Kontaktron===================================
-void kontaktron() {
-  if (digitalRead(12) == HIGH) {
-    digitalWrite(13, HIGH);
-    //   Serial.println("Kontaktron otwarty");
-  } else {
-    digitalWrite(13, LOW);
-    //    Serial.println("Kontaktron zamkn");
-  }
-}
 
 //===========================================================Servo================================================
 Servo servo1;
@@ -223,40 +222,50 @@ void servo_move(int angle) {
   servo1.write(angle);
   delay(500);
   servo1.detach();
-  Serial.println(angle);
+}
+//===========================================================Kontaktron===================================
+void kontaktron() 
+{
+  if (digitalRead(12) == HIGH) 
+  {
+  } 
+  else if (lock == 0 && digitalRead(12) == LOW) 
+  {
+    lock = 1;
+    servo_move(20);
+  }
 }
 //===========================================================RFID================================================
 SoftwareSerial RFID = SoftwareSerial(11, 12);
 
-void rfid() {
+void rfid() 
+{
   char readString;
 
   char c;
   String msg;
 
-  while (RFID.available() > 0) {
+  while (RFID.available() > 0) 
+  {
     c = RFID.read();
     msg += c;
   }
 
-  if (msg.length() > 10) {
+  if (msg.length() > 10) 
+  {
     msg = msg.substring(1, 13);
     Serial.println(msg);
-
-
-    if (msg == "01063B3AAAAC") {
-      if (lock == 0) {
-        lock = 1;
-        servo_move(20);
-      } else if (lock == 1) {
+    if (msg == "01063B3AAAAC") 
+    {
+      if (lock == 1) 
+      {
         lock = 0;
         servo_move(120);
       }
     }
-
     msg = "";
+    delay(500);
   }
-  delay(500);
 }
 //==============================================setup=============================
 void setup() 
@@ -272,21 +281,30 @@ void loop()
 {
   rfid();
   kontaktron();
-  gaz();
+  if(gaz())
+  {
+    Serial.println('l');
+    digitalWrite(A5,HIGH);
+    while(!klawisz)
+    {
+      klawisz = klawiatura.getKey();
+    }
+     digitalWrite(A5,LOW);
+     Serial.println('k');
+  }
   czytaj();
   if(incomingByte!='~')
   {
     switch(incomingByte)
     {
-      case 't':
-      {
-        Serial.println("test ok");
-        incomingByte = '~';
-      }
-      break;
       case 's':
       {
-        getPin();
+        if (getPin() && lock == 1) 
+         {
+           lock = 0;
+           servo_move(120);
+           buzzerSound(3);
+         }
         incomingByte = '~';
       }
       break;

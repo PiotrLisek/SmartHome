@@ -6,7 +6,7 @@ LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
 const char* menuItems[]=
 {
   "      MENU",
-  "Otwarcie szafki", 
+  "Otwarcie drzwi", 
   "Zmiana pinu", 
   "Ust daty/godziny",
 };
@@ -23,14 +23,14 @@ char czytaj()
     return incomingByte;
   }
 }
-//=====================================================Otwieranie szafki=================================
-void szafka()
+//=====================================================Otwieranie drzwi=================================
+void drzwi()
 {
   incomingByte = '~';
   Serial.println('s');
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("Otwarcie szafki");
+  lcd.print("Otwarcie drzwi");
   lcd.setCursor(0, 1);
   lcd.print("Podaj Pin: ");
   while(1)
@@ -138,7 +138,7 @@ void wybor(int x)
   switch(x)
   {
     case 1:
-      szafka();
+      drzwi();
     break;
     case 2:
       zmPin();
@@ -168,6 +168,16 @@ void lcd_print(int x)
       lcd.print(" 21:00");
       lcd.setCursor(0, 1);
       lcd.print("sob 21 STY 2016");
+      incomingByte = '~';
+    }
+    break;
+    case -1:
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Alarm, atmosfera"); 
+      lcd.setCursor(0, 1);
+      lcd.print("zanieczyszczona!");
       incomingByte = '~';
     }
     break;
@@ -223,6 +233,19 @@ void menu()
         incomingByte = '~';
       }
       break;
+      case 'l':
+      {
+        if(czyOn == false)
+        {
+          digitalWrite(8, HIGH);
+          czyOn = true;
+        }
+        lcd_print(-1);
+        while(incomingByte != 'k')
+        {
+          czytaj();   
+        }
+    }
       case 'C':
       {
         if(i>1)
@@ -314,6 +337,19 @@ void loop()
         ileRazy = 0;
       }
       menu();
+    }
+    else if(incomingByte == 'l')
+    {
+      if(czyOn == false)
+      {
+        digitalWrite(8, HIGH);
+        czyOn = true;
+      }
+      lcd_print(-1);
+      while(incomingByte != 'k')
+        {
+          czytaj();   
+        }
     }
     else
     {
